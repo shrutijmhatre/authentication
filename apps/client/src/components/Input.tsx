@@ -1,5 +1,4 @@
-import React, {  FC } from "react";
-import { UseFormRegister } from "react-hook-form";
+import  {  FC } from "react";
 
 interface InputProps {
     type: 'text' | 'number' | 'email' | 'password'
