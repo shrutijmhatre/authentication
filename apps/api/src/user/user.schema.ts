@@ -7,8 +7,13 @@ export class User {
     name: string;
     @Prop({ required: true, unique: true })
     email: string;
-    @Prop({ required: true })
+    @Prop({ required: true , select:false})
     password: string;
 }
 
 export const UserSchema = SchemaFactory.createForClass(User)
+
+UserSchema.pre<User>('save', async function (next: Function) {
+    this.password = await hash(this.password, 10)
+    next()
+  })

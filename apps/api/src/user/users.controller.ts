@@ -1,35 +1,35 @@
-import { Body, Controller, Get, Param, Post, Delete, UseGuards } from '@nestjs/common';
-import { User} from './user.schema';
-import { UsersService } from './users.service';
-import { CreateUserDto } from './dto/user.dto';
-import { AuthGuard } from '@nestjs/passport';
+import {Body, Controller, Get, HttpException, HttpStatus, Post, Request} from '@nestjs/common';
+import {UserService} from './users.service';
+import {CreateUserDto} from './dto/user.dto';
+import {UserResponseType} from './types/userResponse.type';
+import {LoginDto} from './dto/login.dto';
+// import {ExpressRequest} from './middlewares/auth.middleware';
 
-@Controller('users')
-export class UsersController {
-  constructor(private readonly usersService: UsersService) {}
+@Controller()
+export class UserController {
+  constructor(private readonly userService: UserService) {}
 
-  @Get()
-  async getAllUsers(): Promise<User[]> {
-    const users = await this.usersService.getAllUsers();
-    return users;
+  @Post('users/signup')
+  async createUser(
+    @Body() createUserDto: CreateUserDto
+  ): Promise<UserResponseType> {
+    const user = await this.userService.createUser(createUserDto)
+    return this.userService.buildUserResponse(user)
   }
 
-  @Get(':id')
-  async getUserById(@Param('id') id: string): Promise<User> {
-    const user = await this.usersService.getUserById(Number(id));
-    return user;
+  @Post('users/login')
+  async login(
+    @Body() loginDto: LoginDto
+  ): Promise<UserResponseType> {
+    const user = await this.userService.loginUser(loginDto)
+    return this.userService.buildUserResponse(user)
   }
 
-  @Post()
-  @UseGuards(AuthGuard('jwt'))
-  async createUser(@Body() createUserDto: CreateUserDto) {
-    const newUser = await this.usersService.createUser(createUserDto);
-    return newUser;
-  }
-
-  @Delete(':id')
-  async deleteById(@Param('id') id: string): Promise<User> {
-    const user = this.usersService.deleteById(Number(id));
-    return user;
-  }
+  /* @Get('user')
+  async currentUser(@Request() request: ExpressRequest): Promise<UserResponseType> {
+    if (!request.user) {
+      throw new HttpException('Unauthorized', HttpStatus.UNAUTHORIZED)
+    }
+    return this.userService.buildUserResponse(request.user)
+  } */
 }
