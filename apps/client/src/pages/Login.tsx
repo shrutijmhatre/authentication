@@ -3,9 +3,14 @@ import { yupResolver } from "@hookform/resolvers/yup";
 import { loginSchema } from "../types/validation.schema";
 import Input from "../components/Input";
 import authGatewayService from "../service/authGatewayService";
+import { useCookies } from "react-cookie";
+import { useNavigate } from "react-router-dom";
+import { Bounce, ToastContainer, toast } from 'react-toastify';
 import { AxiosError } from "axios";
 
 const Login = () => {
+  const navigate = useNavigate()
+  const [, setCookie] = useCookies(['token']);
     const {
         register,
         handleSubmit,
@@ -13,17 +18,30 @@ const Login = () => {
       } = useForm<{ email: string; password: string; }>({ resolver: yupResolver(loginSchema) });
     
       const onSubmit = (data: { email: string; password: string; }) => {
-        console.log(data)
         authGatewayService.postLoginUser({...data}).then((res)=>{
-          console.log(res)
-        }).catch((err:AxiosError)=>{
-          console.log(err)
+          setCookie('token', res.token,{path: '/'});
+          navigate('/')
+        }).catch((err:AxiosError<{error:string, message:string, statusCode:string}>)=>{
+          if(err.response?.data){
+            toast.error(err.response?.data.message, {
+              position: "top-center",
+              autoClose: 5000,
+              hideProgressBar: false,
+              closeOnClick: true,
+              pauseOnHover: true,
+              draggable: true,
+              progress: undefined,
+              theme: "light",
+              transition: Bounce,
+              });
+          }
         })
       };
     
 
   return (
 <section className="bg-gray-100 dark:bg-gray-900">
+  <ToastContainer />
   <div className="flex flex-col items-center justify-center px-6 py-8 mx-auto md:h-screen lg:py-0">
       <div className="w-full bg-white rounded-lg shadow dark:border md:mt-0 sm:max-w-md xl:p-0 dark:bg-gray-800 dark:border-gray-700">
           <div className="p-6 space-y-4 md:space-y-6 sm:p-8">
@@ -45,7 +63,7 @@ const Login = () => {
       </div>
   </div>
 </section>
-  )
+)
 }
 
 export default Login

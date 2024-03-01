@@ -7,7 +7,6 @@ async function bootstrap() {
   
   app.setGlobalPrefix('api'),
   app.useGlobalPipes(new ValidationPipe());
-  console.log({ secret: process.env.jwt_secret });
   await app.listen(3000);
 }
 bootstrap();

@@ -5,8 +5,14 @@ import { signupSchema } from "../types/validation.schema";
 import Input from "../components/Input";
 import authGatewayService from "../service/authGatewayService";
 import { AxiosError } from "axios";
+import { useCookies } from "react-cookie";
+import { useNavigate } from "react-router-dom";
+import { Bounce, toast } from "react-toastify";
  
 const SignUp = () => {
+  const navigate = useNavigate()
+  const [, setCookie] = useCookies(['token']);
+
   const {
     register,
     handleSubmit,
@@ -15,14 +21,26 @@ const SignUp = () => {
 
   const onSubmit = (data: ISignupForm) => {
     authGatewayService.postSignupUser({name:data.username, ...data}).then((res)=>{
-      console.log(res)
-    }).catch((err:AxiosError)=>{
-      console.log(err)
+      setCookie('token', res.token,{path: '/'})
+      navigate('/')
+    }).catch((err:AxiosError<{error:string, message:string, statusCode:string}>)=>{
+      if(err.response?.data){
+        toast.error(err.response?.data.message, {
+          position: "top-center",
+          autoClose: 5000,
+          hideProgressBar: false,
+          closeOnClick: true,
+          pauseOnHover: true,
+          draggable: true,
+          progress: undefined,
+          theme: "light",
+          transition: Bounce,
+          });
+      }
     })
   };
 
-  return (
-
+return (
 <section className="bg-gray-50 dark:bg-gray-900">
   <div className="flex flex-col items-center justify-center px-6 py-8 mx-auto md:h-screen lg:py-0">   
       <div className="w-full bg-white rounded-lg shadow dark:border md:mt-0 sm:max-w-md xl:p-0 dark:bg-gray-800 dark:border-gray-700">
@@ -45,7 +63,7 @@ const SignUp = () => {
       </div>
   </div>
 </section>
-  )
+)
 }
 
 export default SignUp
