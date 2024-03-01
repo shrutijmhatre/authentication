@@ -3,9 +3,14 @@ import { UserController } from './users.controller';
 import { UserService } from './users.service';
 import { UserSchema } from './user.schema';
 import { MongooseModule } from '@nestjs/mongoose';
+import { JwtModule } from '@nestjs/jwt';
 
 @Module({
-  imports: [MongooseModule.forFeature([{name :'User', schema:UserSchema}])],
+  imports: [MongooseModule.forFeature([{name :'User', schema:UserSchema}]),
+  JwtModule.register({
+    secret: `${process.env.jwt_secret}`,
+    signOptions: { expiresIn: '60s' },
+  }),],
   controllers: [UserController],
   providers: [UserService],
   exports:[UserService]

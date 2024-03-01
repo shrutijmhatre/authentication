@@ -1,4 +1,4 @@
-import {HttpException, HttpStatus, Injectable} from '@nestjs/common';
+import {HttpException, HttpStatus, Injectable, UnauthorizedException} from '@nestjs/common';
 import {CreateUserDto} from './dto/user.dto';
 import {InjectModel} from '@nestjs/mongoose';
 import {User} from './user.schema';
@@ -6,11 +6,13 @@ import {Model} from 'mongoose';
 import {UserResponseType} from './types/userResponse.type';
 import {LoginDto} from './dto/login.dto';
 import {compare} from 'bcrypt';
-import {sign} from 'jsonwebtoken';
+import {JwtService} from '@nestjs/jwt';
 
 @Injectable()
 export class UserService {
-  constructor(@InjectModel(User.name) private userModel: Model<User>) {}
+  constructor(@InjectModel(User.name) 
+  private userModel: Model<User>,
+  private jwtService: JwtService) {}
 
   async createUser(createUserDto: CreateUserDto): Promise<User> {
     const user = await this.userModel.findOne({email: createUserDto.email})
@@ -33,13 +35,13 @@ export class UserService {
     const isPasswordCorrect = await compare(loginDto.password, user.password)
 
     if (!isPasswordCorrect) {
-      throw new HttpException('Incorrect password', HttpStatus.UNPROCESSABLE_ENTITY)
+      throw new UnauthorizedException('Incorrect password')
     }
 
     return user
   }
 
-  buildUserResponse(userEntity: User): UserResponseType {
+   buildUserResponse(userEntity: User): UserResponseType {
     return {
       name: userEntity.name,
       email: userEntity.email,
@@ -48,7 +50,8 @@ export class UserService {
   }
 
   generateJwt(userEntity: User): string {
-    return sign({email: userEntity.email}, process.env.JWT_SECRET)
+    const payload = { email: userEntity.email, name: userEntity.name };
+    return this.jwtService.sign(payload)
   }
 
   async findByEmail(email: string): Promise<User> {
