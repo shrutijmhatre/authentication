@@ -3,6 +3,8 @@ import { yupResolver } from "@hookform/resolvers/yup";
 import { ISignupForm } from "../types/form.interface";
 import { signupSchema } from "../types/validation.schema";
 import Input from "../components/Input";
+import authGatewayService from "../service/authGatewayService";
+import { AxiosError } from "axios";
  
 const SignUp = () => {
   const {
@@ -12,7 +14,11 @@ const SignUp = () => {
   } = useForm<ISignupForm>({ resolver: yupResolver(signupSchema) });
 
   const onSubmit = (data: ISignupForm) => {
-    console.log(data);
+    authGatewayService.postSignupUser({name:data.username, ...data}).then((res)=>{
+      console.log(res)
+    }).catch((err:AxiosError)=>{
+      console.log(err)
+    })
   };
 
   return (

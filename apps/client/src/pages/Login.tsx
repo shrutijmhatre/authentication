@@ -2,6 +2,8 @@ import { useForm } from "react-hook-form"
 import { yupResolver } from "@hookform/resolvers/yup";
 import { loginSchema } from "../types/validation.schema";
 import Input from "../components/Input";
+import authGatewayService from "../service/authGatewayService";
+import { AxiosError } from "axios";
 
 const Login = () => {
     const {
@@ -11,8 +13,14 @@ const Login = () => {
       } = useForm<{ email: string; password: string; }>({ resolver: yupResolver(loginSchema) });
     
       const onSubmit = (data: { email: string; password: string; }) => {
-        console.log(data);
+        console.log(data)
+        authGatewayService.postLoginUser({...data}).then((res)=>{
+          console.log(res)
+        }).catch((err:AxiosError)=>{
+          console.log(err)
+        })
       };
+    
 
   return (
 <section className="bg-gray-100 dark:bg-gray-900">
